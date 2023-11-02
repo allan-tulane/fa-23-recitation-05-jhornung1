@@ -15,11 +15,11 @@ class TreeNode(object):
 def get_frequencies(fname):
     ## This function is done.
     ## Given any file name, this function reads line by line to count the frequency per character. 
-    f=open(fname, 'r')
+    f = open(fname, 'r')
     C = Counter()
     for l in f.readlines():
         C.update(Counter(l))
-    return(dict(C.most_common()))
+    return dict(C.most_common())
 
 # given a dictionary f mapping characters to frequencies, 
 # create a prefix code tree using Huffman's algorithm
@@ -34,7 +34,10 @@ def make_huffman_tree(f):
     # create a new node z with x and y as children,
     # insert z into the priority queue (using an empty character "")
     while (p.qsize() > 1):
-        # TODO
+      x = p.get()
+      y = p.get()
+      z = TreeNode(x, y, (x.data[0] + y.data[0], ""))
+      p.put(z)
         
     # return root of the tree
     return p.get()
@@ -42,20 +45,35 @@ def make_huffman_tree(f):
 # perform a traversal on the prefix code tree to collect all encodings
 def get_code(node, prefix="", code={}):
     # TODO - perform a tree traversal and collect encodings for leaves in code
-    pass
+  if node is not None:
+      left, right = node.children()
+      if left is not None:
+          get_code(left, prefix + "0", code)
+      if right is not None:
+          get_code(right, prefix + "1", code)
+      if left is None and right is None:
+          code[node.data[1]] = prefix
+  return code
 
 # given an alphabet and frequencies, compute the cost of a fixed length encoding
 def fixed_length_cost(f):
-    # TODO
-    pass
+  freq = get_frequencies(f)  # Get the frequencies from the file
+  total_characters = sum(freq.values())
+  average_code_length = sum(freq[char] * 8 for char in freq)  # Assuming 8 bits per character
+  total_cost = total_characters * average_code_length
+  return total_cost
 
 # given a Huffman encoding and character frequencies, compute cost of a Huffman encoding
 def huffman_cost(C, f):
-    # TODO
-    pass
+  total_cost = 0
+  for char, code in C.items():
+    frequency = f[char]
+    total_cost += frequency * len(code)
+  return total_cost
 
-f = get_frequencies('f1.txt')
-print("Fixed-length cost:  %d" % fixed_length_cost(f))
+f = get_frequencies('fields.c')
 T = make_huffman_tree(f)
 C = get_code(T)
+
+print("Fixed-length cost:  %d" % fixed_length_cost('fields.c'))
 print("Huffman cost:  %d" % huffman_cost(C, f))
